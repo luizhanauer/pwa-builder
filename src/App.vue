@@ -5,6 +5,8 @@ import ManifestForm from './components/forms/ManifestForm.vue';
 import CodePreview from './components/preview/CodePreview.vue';
 import MobilePreview from './components/preview/MobilePreview.vue';
 import { ZipExportService } from './core/services/ZipExportService';
+import { FaviconService } from './core/services/FaviconService';
+import { watch } from 'vue';
 
 const { state } = useManifest();
 const activeTab = ref<'code' | 'visual'>('visual');
@@ -20,6 +22,25 @@ const downloadZip = async (): Promise<void> => {
     alert('Ocorreu um erro ao gerar o seu PWA. Verifique a consola.');
   }
 };
+
+watch(
+  () => state.theme_color,
+  (newColor) => {
+    // 1. Atualiza o ícone da aba do navegador dinamicamente
+    FaviconService.updateWithColor(newColor);
+    
+    // 2. Atualiza a cor da barra de endereços do navegador (Mobile UX)
+    let metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (!metaTheme) {
+      metaTheme = document.createElement('meta');
+      metaTheme.setAttribute('name', 'theme-color');
+      document.head.appendChild(metaTheme);
+    }
+    metaTheme.setAttribute('content', newColor);
+  },
+  { immediate: true } // Garante que a cor padrão seja aplicada logo no arranque
+);
+
 </script>
 
 <template>
